@@ -17,17 +17,33 @@ def browser_setup(browser = 'firefox')
       profile['profile.default_content_settings.popups'] = 0 # custom location
       profile['browser.helperApps.neverAsk.saveToDisk'] = 'application/octet-stream, text/xml'
       profile['pdfjs.disabled'] = true
+      profile['download.default_directory'] = File.join(Dir.pwd, 'features/tmp')
+      profile['download.prompt_for_download'] = false
+
+      Selenium::WebDriver::Chrome.driver_path = 'configuration/chromedriver'
+
+      capabilities = Selenium::WebDriver::Remote::Capabilities.chrome(
+        'chromeOptions' => {
+          'args' => [
+            '--disable-blink-features=AutomationControlled',
+            '--disable-infobars',
+            '--start-maximized',
+            '--disable-extensions',
+            '--disable-popup-blocking',
+            'user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36'
+          ],
+          'prefs' => {
+            'download.default_directory' => "#{Dir.pwd}/features/tmp/",
+            'download.prompt_for_download' => false,
+            'plugins.plugins_disabled' => ['Chrome PDF Viewer'],
+            'profile.default_content_settings.popups' => 0
+          }
+        }
+      )
+
       Capybara::Selenium::Driver.new(app, browser: :chrome,
-                                          desired_capabilities: Selenium::WebDriver::Remote::Capabilities.chrome(
-                                            'chromeOptions' => {
-                                              'args' => ['--window-size=1920,1080'],
-                                              'prefs' => {
-                                                'download.default_directory' => Dir.pwd + '/features/tmp/',
-                                                'download.prompt_for_download' => false,
-                                                'plugins.plugins_disabled' => ['Chrome PDF Viewer']
-                                              }
-                                            }
-                                          ))
+                                          desired_capabilities: capabilities)
+
     end
     Capybara.default_driver = :chrome
     Capybara.page.driver.browser.manage.window.maximize
