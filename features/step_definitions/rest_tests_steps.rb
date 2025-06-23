@@ -7,6 +7,26 @@ When(/^получаю информацию о пользователях$/) do
   @scenario_data.users_full_info = users_full_information
 end
 
+When(/^(позитивно|негативно) получаю информацию о пользователe с айди (\d+):$/) do |type, id|
+  if type == 'позитивно'
+    user_full_information = $rest_wrap.get("/users/#{id.to_i}")
+
+    $logger.info('Информация о пользователe получена')
+    @scenario_data.user_full_info = user_full_information
+  else
+    users = @scenario_data.users_full_info
+
+    max_id = users.map { |user| user['id'].to_i }.max || 0
+    non_existing_id = max_id + 1
+    begin
+      response = $rest_wrap.get("/users/#{non_existing_id}")
+      expect(response.code).to eq(404) #['status']).not_to eq(200)
+    rescue => e
+      $logger.info("Ожидаемая ошибка при запросе несуществующего пользователя: #{e.message}")
+    end
+  end
+end
+
 When(/^проверяю (наличие|отсутствие) логина (\w+\.\w+) в списке пользователей$/) do |presence, login|
   search_login_in_list = true
   presence == 'отсутствие' ? search_login_in_list = !search_login_in_list : search_login_in_list
@@ -55,26 +75,50 @@ end
 When(/^нахожу пользователя с логином (\w+\.\w+)$/) do |login|
   step %(получаю информацию о пользователях)
   if @scenario_data.users_id[login].nil?
-    @scenario_data.users_id[login] = find_user_id(users_information: @scenario_data
+    # @scenario_data.users_id[login] 
+    user_id = find_user_id(users_information: @scenario_data
                                                                          .users_full_info,
                                                   user_login: login)
+    if user_id.nil?
+      @scenario_data.users_id[login] = nil
+      raise "Не удалось найти пользователя с логином #{login} в списке пользователей"
+    else
+      @scenario_data.users_id[login] = user_id
+    end                                              
   end
 
   $logger.info("Найден пользователь #{login} с id:#{@scenario_data.users_id[login]}")
 end
 
 
-When(/^удаляю пользователя с логином (\w+\.\w+)$/) do |login|
-  step %(нахожу пользователя с логином #{login})
-  $logger.info("1")
+When(/^(позитивно|негативно) удаляю пользователя с логином (\w+\.\w+)$/) do |type, login|
+  begin
+    step %(нахожу пользователя с логином #{login})
+  rescue => e
+    $logger.error("Не удалось найти пользователя с логином #{login} для удаления: #{e.message}")
+  end
   deleting_user_id = @scenario_data.users_id[login]
-  $logger.info("1")
 
-  response = $rest_wrap.delete("/users/#{deleting_user_id}")
-  if response['status'] == 200
-    $logger.info("Пользователь с логином #{login} успешно удален")
+  if type == 'негативно'
+    # expect(deleting_user_id).to be_nil
+    users = $rest_wrap.get('/users')
+
+    max_id = users.map { |user| user['id'].to_i }.max || 0
+    non_existing_id = max_id + 1
+    begin
+      response = $rest_wrap.delete("/users/#{non_existing_id}")
+      expect(response.code).to eq(404) #['status']).not_to eq(200)
+    rescue => e
+      $logger.info("Ожидаемая ошибка при удалении несуществующего пользователя: #{e.message}")
+    end
   else
-    raise "Не удалось удалить пользователя с логином #{login}, код ответа: #{response.code}"
+    expect(deleting_user_id).not_to be_nil
+    response = $rest_wrap.delete("/users/#{deleting_user_id}")
+    if response['status'] == 200
+      $logger.info("Пользователь с логином #{login} успешно удален")
+    else
+      raise "Не удалось удалить пользователя с логином #{login}, код ответа: #{response.code}"
+    end
   end
 end
 
@@ -96,7 +140,7 @@ When(/^Проверяю соответствие данных пользоват
   end
 end
 
-When(/^меняю параметры пользователя с логином (\w+\.\w+):$/) do |login_old, data_table|
+When(/^(позитивно|негативно|без_аргументов) меняю параметры пользователя с логином (\w+\.\w+):$/) do |type, login_old, data_table|
   user_data = data_table.raw
 
   login = user_data[0][1]
@@ -104,22 +148,54 @@ When(/^меняю параметры пользователя с логином 
   surname = user_data[2][1]
   password = user_data[3][1]
   active = user_data[4][1].to_i
+  if type == 'позитивно'
+    $logger.info("меняю пользователя с логином #{login_old} на пользователя c логином #{login} именем #{name} фамилией #{surname} паролем #{password} и активностью #{active}")
+    
+    step %(нахожу пользователя с логином #{login_old})
+    changing_user_id = @scenario_data.users_id[login_old]
 
-  $logger.info("меняю пользователя с логином #{login_old} на пользователя c логином #{login} именем #{name} фамилией #{surname} паролем #{password} и активностью #{active}")
-  
-  step %(нахожу пользователя с логином #{login_old})
-  changing_user_id = @scenario_data.users_id[login_old]
+    response = $rest_wrap.put("/users/#{changing_user_id}", login: login,
+                                        name: name,
+                                        surname: surname,
+                                        password: password,
+                                        active: active)
+    $logger.info(response.inspect)
+    
+    if response['status'] == 200
+      $logger.info("Пользователь с логином #{login_old} успешно изменен")
+    else
+      raise "Не удалось изменить пользователя с логином #{login_old}, код ответа: #{response['status']}"
+    end
+  elsif type == 'негативно'
+    users = @scenario_data.users_full_info
 
-  response = $rest_wrap.put("/users/#{changing_user_id}", login: login,
-                                       name: name,
-                                       surname: surname,
-                                       password: password,
-                                       active: active)
-  $logger.info(response.inspect)
-  
-  if response['status'] == 200
-    $logger.info("Пользователь с логином #{login_old} успешно изменен")
+    max_id = users.map { |user| user['id'].to_i }.max || 0
+    non_existing_id = max_id + 1
+    begin
+      response = $rest_wrap.put("/users/#{non_existing_id}", login: 'login',
+                                          name: 'name',
+                                          surname: 'surname',
+                                          password: 'password',
+                                          active: 2)
+      expect(response.code).to eq(404)
+    rescue => e
+      $logger.info("Ожидаемая ошибка при изменении несуществующего пользователя: #{e.message}")
+    end
   else
-    raise "Не удалось изменить пользователя с логином #{login_old}, код ответа: #{response['status']}"
+    $logger.info("меняю пользователя с логином #{login_old} на пользователя c логином #{login} именем #{name} фамилией #{surname} паролем #{password} и активностью #{active}")
+    
+    step %(нахожу пользователя с логином #{login_old})
+    changing_user_id = @scenario_data.users_id[login_old]
+
+    begin
+      response = $rest_wrap.put("/users/#{changing_user_id}", login: login,
+                                        name: name,
+                                        surname: surname,
+                                        password: password,
+                                        active: active)
+      expect(response.code).to eq(400) 
+    rescue => e
+      $logger.info("Ожидаемая ошибка при попытке обновить данные пользователя на нил: #{e.message}")
+    end
   end
 end

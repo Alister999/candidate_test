@@ -10,7 +10,8 @@ def find_user_id(users_information:, user_login:)
   users_id.uniq!
 
   if users_id.size != 1
-    raise "Логин пользователя неуникален! Найдено пользователей с аналогичным логином: #{users_id.size}, id: #{users_id.inspect}"
+    # raise "Логин пользователя неуникален! Найдено пользователей с аналогичным логином: #{users_id.size}, id: #{users_id.inspect}"
+    nil
   end
 
   users_id.first
