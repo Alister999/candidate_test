@@ -1,24 +1,131 @@
-# encoding: UTF-8
-# language: ru
+# encoding: utf-8
 
-#Readme
-# Данный тест - проверка навыков работы с REST API
-# Мы используем Gem RestClient
-# Для облегчения работы в тесте есть обертка над этим гемом features/support/helpers/rest_wrapper.rb
+@api
+Feature: REST API Testing
 
-# Ваша задача
-# 1. Реализовать шаг удаления пользователя по логину ( логин - уникальный параметр для пользователя)
-# 2. Реализовать шаг изменения доступных параметров пользователя по логину
-# 3. Провести исследовательское тестирование работы реализованных REST API сервисов (независимо и в связках)
+  @get @smoke
+  Scenario: Get users from userlist
+    When получаю информацию о пользователях
+    Then проверяю наличие логина i.ivanov в списке пользователей
+    When Проверяю соответствие данных пользователя с логином i.ivanov эталону:
+      | login     | i.ivanov       |
+      | name      | Ivan           |
+      | surname   | Ivanov         |
+      | active    | 1              |
+    Then проверяю отсутствие логина f.akelogin в списке пользователей
 
-Функция: REST API
+  @get @smoke
+  Scenario: Get user from userlist
+    When получаю информацию о пользователях
+    When позитивно получаю информацию о пользователe с айди 630:
+    When Проверяю соответствие данных пользователя с логином c.tester эталону:
+      | login     | c.tester       |
+      | name      | Ivan           |
+      | surname   | Petrov         |
+      | active    | 1              |
 
-  Сценарий: Работа с пользователями через REST API
+  @get @negative
+  Scenario: Negative get user from userlist
+    When получаю информацию о пользователях
+    When негативно получаю информацию о пользователe с айди 630:
 
-    Дано получаю информацию о пользователях
+  @post @smoke
+  Scenario: Adding new user to userlist
+    When позитивно добавляю пользователя с параметрами:
+      | login     | unique.user    |
+      | name      | Alister        |
+      | surname   | Lavey          |
+      | password  | Pass123!       |
+    When получаю информацию о пользователях
+    Then проверяю наличие логина unique.user в списке пользователей
+    When Проверяю соответствие данных пользователя с логином unique.user эталону:
+      | login     | unique.user    |
+      | name      | Alister        |
+      | surname   | Lavey          |
+      | active    | 1              |
+    When позитивно удаляю пользователя с логином unique.user
 
-    И проверяю наличие логина i.ivanov в списке пользователей
-    И проверяю отсутствие логина f.akelogin в списке пользователей
+  @post @negative
+  Scenario: Negative adding same user to userlist
+    When негативно добавляю пользователя с параметрами:
+      | login     | i.ivanov       |
+      | name      | Alister        |
+      | surname   | Lavey          |
+      | password  | Pass123!       |
 
-    Тогда добавляю пользователя c логином t.task именем testing фамилией task паролем Qwerty123@
-    И нахожу пользователя с логином t.task
+  @detete @smoke
+  Scenario: Delete user from user list
+    When позитивно добавляю пользователя с параметрами:
+      | login     | unique.user    |
+      | name      | Alister        |
+      | surname   | Lavey          |
+      | password  | Pass123!       |
+    When получаю информацию о пользователях
+    Then проверяю наличие логина unique.user в списке пользователей
+    When позитивно удаляю пользователя с логином unique.user
+    When получаю информацию о пользователях
+    Then проверяю отсутствие логина unique.user в списке пользователей
+
+  @detete @negative
+  Scenario: Negative elete user from user list
+    When негативно удаляю пользователя с логином unique.user
+    When получаю информацию о пользователях
+    Then проверяю отсутствие логина unique.user в списке пользователей
+
+  @put @smoke
+  Scenario: Change user in userlist
+    When позитивно добавляю пользователя с параметрами:
+      | login     | unique.user    |
+      | name      | Alister        |
+      | surname   | Lavey          |
+      | password  | Pass123!       |
+    When получаю информацию о пользователях
+    Then проверяю наличие логина unique.user в списке пользователей
+    When позитивно меняю параметры пользователя с логином unique.user:
+      | login     | unique.user1   |
+      | name      | Alister2       |
+      | surname   | Lavey3         |
+      | password  | Pass1234       |
+      | active    | 2              |
+    When получаю информацию о пользователях
+    Then проверяю отсутствие логина unique.user в списке пользователей
+    When Проверяю соответствие данных пользователя с логином unique.user1 эталону:
+      | login     | unique.user1   |
+      | name      | Alister2       |
+      | surname   | Lavey3         |
+      | active    | 2              |
+    When позитивно удаляю пользователя с логином unique.user1
+
+  @put @negative
+  Scenario: Negative change user in userlist
+    When позитивно добавляю пользователя с параметрами:
+      | login     | unique.user    |
+      | name      | Alister        |
+      | surname   | Lavey          |
+      | password  | Pass123!       |
+    When получаю информацию о пользователях
+    Then проверяю наличие логина unique.user в списке пользователей
+    When негативно меняю параметры пользователя с логином unique.user:
+      | login     | unique.user1   |
+      | name      | Alister2       |
+      | surname   | Lavey3         |
+      | password  | Pass1234       |
+      | active    | 2              |
+    When позитивно удаляю пользователя с логином unique.user
+
+  @put @negative
+  Scenario: Negative non arguments change user in userlist
+    When позитивно добавляю пользователя с параметрами:
+      | login     | unique.user    |
+      | name      | Alister        |
+      | surname   | Lavey          |
+      | password  | Pass123!       |
+    When получаю информацию о пользователях
+    Then проверяю наличие логина unique.user в списке пользователей
+    When без_аргументов меняю параметры пользователя с логином unique.user:
+      | login     ||
+      | name      ||
+      | surname   ||
+      | password  ||
+      | active    ||
+    When позитивно удаляю пользователя с логином unique.user
