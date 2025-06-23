@@ -55,3 +55,15 @@ When(/^нахожу пользователя с логином (\w+\.\w+)$/) do 
 
   $logger.info("Найден пользователь #{login} с id:#{@scenario_data.users_id[login]}")
 end
+
+When(/^удаляю пользователя с логином (\w+\.\w+)$/) do |login|
+  step %(нахожу пользователя с логином #{login})
+  deleting_user_id = @scenario_data.users_id[login]
+
+  response = $rest_wrap.delete("/users/#{deleting_user_id}")
+  if response['status'] == 200
+    $logger.info("Пользователь с логином #{login} успешно удален")
+  else
+    raise "Не удалось удалить пользователя с логином #{login}, код ответа: #{response.code}"
+  end
+end
