@@ -33,6 +33,26 @@ class RestWrapper
     send_error e
   end
 
+  def post_error(current_url, params = {})
+    response = RestClient::Request.execute(
+      method: :post,
+      url: compile_full_url(current_url),
+      user: login,
+      password: password,
+      payload: params.to_json,
+      headers: { content_type: 'application/json' }
+    )
+    @last_response = response
+    JSON.parse(response) rescue response
+  rescue RestClient::ExceptionWithResponse => e
+    @last_response = e.response
+    # Если suppress_errors включён, не бросаем исключение
+    if respond_to?(:suppress_errors) && suppress_errors
+      return e.response
+    end
+    e.response  # Возвращаем, чтобы можно было протестировать статус
+  end
+
   def put(current_url, params = {})
     response = RestClient::Request.execute method: :put,
                                            url: compile_full_url(current_url),

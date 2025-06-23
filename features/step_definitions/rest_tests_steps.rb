@@ -25,16 +25,17 @@ end
 
 When(/^добавляю пользователя c логином (\w+\.\w+) именем (\w+) фамилией (\w+) паролем ([\d\w@!#]+)$/) do
 |login, name, surname, password|
-
-  response = $rest_wrap.post('/users', login: login,
+  #post
+  response = $rest_wrap.post_error('/users', login: login,
                                        name: name,
                                        surname: surname,
                                        password: password,
                                        active: 1)
+  @scenario_data.response = response
   $logger.info(response.inspect)
 end
 
-When(/^добавляю пользователя с параметрами:$/) do |data_table|
+When(/^(позитивно|негативно) добавляю пользователя с параметрами:$/) do |type, data_table|
   user_data = data_table.raw
 
   login = user_data[0][1]
@@ -43,6 +44,12 @@ When(/^добавляю пользователя с параметрами:$/) d
   password = user_data[3][1]
 
   step "добавляю пользователя c логином #{login} именем #{name} фамилией #{surname} паролем #{password}"
+  if type == 'позитивно'
+    expect(@scenario_data.response['status']).to eq(200) 
+  else
+    expect(@scenario_data.response.code).to eq(400)
+  end
+  # expect(@scenario_data.response.code).to eq(200) #, "Не удалось добавить пользователя с логином #{login}, код ответа: #{response['status']}"
 end
 
 When(/^нахожу пользователя с логином (\w+\.\w+)$/) do |login|
@@ -59,7 +66,9 @@ end
 
 When(/^удаляю пользователя с логином (\w+\.\w+)$/) do |login|
   step %(нахожу пользователя с логином #{login})
+  $logger.info("1")
   deleting_user_id = @scenario_data.users_id[login]
+  $logger.info("1")
 
   response = $rest_wrap.delete("/users/#{deleting_user_id}")
   if response['status'] == 200
@@ -75,8 +84,7 @@ When(/^Проверяю соответствие данных пользоват
   login = user_data[0][1]
   name = user_data[1][1]
   surname = user_data[2][1]
-  password = user_data[3][1]
-  active = user_data[4][1].to_i
+  active = user_data[3][1].to_i
 
   @scenario_data.users_full_info.select do |user|
     if user['login'] == login
