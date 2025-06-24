@@ -7,6 +7,7 @@ When(/^получаю информацию о пользователях$/) do
   @scenario_data.users_full_info = users_full_information
 end
 
+
 When(/^(позитивно|негативно) получаю информацию о пользователe с айди (\d+):$/) do |type, id|
   if type == 'позитивно'
     user_full_information = $rest_wrap.get("/users/#{id.to_i}")
@@ -26,6 +27,7 @@ When(/^(позитивно|негативно) получаю информаци
     end
   end
 end
+
 
 When(/^проверяю (наличие|отсутствие) логина (\w+\.\w+) в списке пользователей$/) do |presence, login|
   search_login_in_list = true
@@ -55,6 +57,7 @@ When(/^добавляю пользователя c логином (\w+\.\w+) и�
   $logger.info(response.inspect)
 end
 
+
 When(/^(позитивно|негативно) добавляю пользователя с параметрами:$/) do |type, data_table|
   user_data = data_table.raw
 
@@ -69,13 +72,12 @@ When(/^(позитивно|негативно) добавляю пользова
   else
     expect(@scenario_data.response.code).to eq(400)
   end
-  # expect(@scenario_data.response.code).to eq(200) #, "Не удалось добавить пользователя с логином #{login}, код ответа: #{response['status']}"
 end
+
 
 When(/^нахожу пользователя с логином (\w+\.\w+)$/) do |login|
   step %(получаю информацию о пользователях)
   if @scenario_data.users_id[login].nil?
-    # @scenario_data.users_id[login] 
     user_id = find_user_id(users_information: @scenario_data
                                                                          .users_full_info,
                                                   user_login: login)
@@ -100,14 +102,13 @@ When(/^(позитивно|негативно) удаляю пользовате
   deleting_user_id = @scenario_data.users_id[login]
 
   if type == 'негативно'
-    # expect(deleting_user_id).to be_nil
     users = $rest_wrap.get('/users')
 
     max_id = users.map { |user| user['id'].to_i }.max || 0
     non_existing_id = max_id + 1
     begin
       response = $rest_wrap.delete("/users/#{non_existing_id}")
-      expect(response.code).to eq(404) #['status']).not_to eq(200)
+      expect(response.code).to eq(404)
     rescue => e
       $logger.info("Ожидаемая ошибка при удалении несуществующего пользователя: #{e.message}")
     end
@@ -121,6 +122,7 @@ When(/^(позитивно|негативно) удаляю пользовате
     end
   end
 end
+
 
 When(/^Проверяю соответствие данных пользователя с логином (\w+\.\w+) эталону:$/) do |login_old, data_table|
   user_data = data_table.raw
@@ -139,6 +141,7 @@ When(/^Проверяю соответствие данных пользоват
     end
   end
 end
+
 
 When(/^(позитивно|негативно|без_аргументов) меняю параметры пользователя с логином (\w+\.\w+):$/) do |type, login_old, data_table|
   user_data = data_table.raw
