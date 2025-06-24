@@ -7,7 +7,7 @@ Feature: REST API Testing
   Scenario: Get users from userlist
     When получаю информацию о пользователях
     Then проверяю наличие логина i.ivanov в списке пользователей
-    When Проверяю соответствие данных пользователя с логином i.ivanov эталону:
+    When проверяю соответствие данных пользователя эталону:
       | login     | i.ivanov       |
       | name      | Ivan           |
       | surname   | Ivanov         |
@@ -18,7 +18,7 @@ Feature: REST API Testing
   Scenario: Get user from userlist
     When получаю информацию о пользователях
     When позитивно получаю информацию о пользователe с айди 630:
-    When Проверяю соответствие данных пользователя с логином c.tester эталону:
+    When проверяю соответствие данных пользователя эталону:
       | login     | c.tester       |
       | name      | Ivan           |
       | surname   | Petrov         |
@@ -38,7 +38,7 @@ Feature: REST API Testing
       | password  | Pass123!       |
     When получаю информацию о пользователях
     Then проверяю наличие логина unique.user в списке пользователей
-    When Проверяю соответствие данных пользователя с логином unique.user эталону:
+    When проверяю соответствие данных пользователя эталону:
       | login     | unique.user    |
       | name      | Alister        |
       | surname   | Lavey          |
@@ -89,7 +89,7 @@ Feature: REST API Testing
       | active    | 2              |
     When получаю информацию о пользователях
     Then проверяю отсутствие логина unique.user в списке пользователей
-    When Проверяю соответствие данных пользователя с логином unique.user1 эталону:
+    When проверяю соответствие данных пользователя эталону:
       | login     | unique.user1   |
       | name      | Alister2       |
       | surname   | Lavey3         |

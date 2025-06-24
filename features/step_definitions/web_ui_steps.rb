@@ -6,7 +6,6 @@ When(/^захожу на страницу "(.+?)"$/) do |url|
   sleep 1
 end
 
-
 When(/^ввожу в поисковой строке текст "([^"]*)"$/) do |text|
   query = find("//textarea[@class='gLFyf']")
   query.set(text)
@@ -15,7 +14,6 @@ When(/^ввожу в поисковой строке текст "([^"]*)"$/) do 
   sleep 1
 end
 
-
 When(/^кликаю по строке выдачи с адресом (.+?)$/) do |url|
   link_first = find("//a[@href='#{url}/']/h3")
   link_first.click
@@ -23,13 +21,11 @@ When(/^кликаю по строке выдачи с адресом (.+?)$/) do
   sleep 1
 end
 
-
 When(/^я должен увидеть текст на странице "([^"]*)"$/) do |text_page|
   sleep 1
   expect(page).to have_text text_page
   $logger.info("Текст #{text_page} на текущей странице присутствует")
 end
-
 
 When(/^кликаю по кнопке перехода в загрузки$/) do
   download_btn = all(:xpath, "//a[@href='/ru/downloads/']")
@@ -38,13 +34,11 @@ When(/^кликаю по кнопке перехода в загрузки$/) do
   sleep 1
 end
 
-
 When(/^кликаю по ссылке на последнюю стейбл версию$/) do
   last_stables = all(:xpath, "//a[contains(@href, '.tar.gz') and contains(text(), 'Ruby 3')]")
   last_stables[0].click
   $logger.info('Клик по ссылке на последнюю стейбл версию осуществлен, начата загрузка')
 end
-
 
 Then(/^файл находится в директории загрузок$/) do
   last_stables = all(:xpath, "//a[contains(@href, '.tar.gz') and contains(text(), 'Ruby 3')]")
@@ -52,7 +46,7 @@ Then(/^файл находится в директории загрузок$/) d
   $logger.info("Имя скачиваемого файла с сайта: #{site_name}")
 
   downloads_dir = File.join(Dir.pwd, 'features/tmp')
-  timeout = 20 
+  timeout = 20
   start_time = Time.now
   until Dir.glob(File.join(downloads_dir, site_name)).any? || (Time.now - start_time) > timeout
     $logger.info("Ожидаем скачивания файла #{site_name}, время ожидания: #{Time.now - start_time} секунд")
@@ -64,9 +58,7 @@ Then(/^файл находится в директории загрузок$/) d
   else
     $logger.info("Файл #{site_name} успешно скачан в директорию #{downloads_dir}")
   end
-  # raise "Файл #{site_name} не скачался за #{timeout} секунд" unless Dir.glob(File.join(downloads_dir, site_name)).any?
 end
-
 
 Then(/^имя скачанного файла совпадает с указанным на сайте$/) do
   last_stables = all(:xpath, "//a[contains(@href, '.tar.gz') and contains(text(), 'Ruby 3')]")
