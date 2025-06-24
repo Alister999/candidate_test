@@ -6,14 +6,15 @@ When(/^захожу на страницу "(.+?)"$/) do |url|
   sleep 1
 end
 
+
 When(/^ввожу в поисковой строке текст "([^"]*)"$/) do |text|
-  #query = find("//input[@name='q']")
   query = find("//textarea[@class='gLFyf']")
   query.set(text)
   query.native.send_keys(:enter)
   $logger.info('Поисковый запрос отправлен')
   sleep 1
 end
+
 
 When(/^кликаю по строке выдачи с адресом (.+?)$/) do |url|
   link_first = find("//a[@href='#{url}/']/h3")
@@ -22,44 +23,55 @@ When(/^кликаю по строке выдачи с адресом (.+?)$/) do
   sleep 1
 end
 
+
 When(/^я должен увидеть текст на странице "([^"]*)"$/) do |text_page|
   sleep 1
   expect(page).to have_text text_page
 end
 
+
 When(/^кликаю по кнопке перехода в загрузки$/) do
   download_btn = all(:xpath, "//a[@href='/ru/downloads/']")
   download_btn[0].click
   $logger.info('Переход на страницу загрузок осуществлен')
-  sleep 10
+  sleep 1
 end
+
 
 When(/^кликаю по ссылке на последнюю стейбл версию$/) do
   last_stables = all(:xpath, "//a[contains(@href, '.tar.gz') and contains(text(), 'Ruby 3')]")
-  @expected_filename = File.basename(last_stables[0][:href]) 
-  $logger.info("Ожидаемое имя файла: #{@expected_filename}")
   last_stables[0].click
   $logger.info('Клик по ссылке на последнюю стейбл версию осуществлен, начата загрузка')
-  script_path = "/Volumes/T7/ruby/task/candidate_test/features/support/helpers/save_file.scpt" 
-  system("osascript #{script_path}")
-  downloads_dir = File.join(Dir.pwd, 'features/tmp')
-  timeout = 20
-  start_time = Time.now
-  until Dir.glob(File.join(downloads_dir, @expected_filename)).any? || (Time.now - start_time) > timeout
-    sleep 1
-  end
-  raise "Файл #{@expected_filename} не скачался за #{timeout} секунд" unless Dir.glob(File.join(downloads_dir, @expected_filename)).any?
 end
+
 
 Then(/^файл находится в директории загрузок$/) do
+  last_stables = all(:xpath, "//a[contains(@href, '.tar.gz') and contains(text(), 'Ruby 3')]")
+  site_name = last_stables[0][:href].split('/').last
+  $logger.info("имя скачиваемого файла: #{site_name}")
+
   downloads_dir = File.join(Dir.pwd, 'features/tmp')
-  expect(Dir.glob(File.join(downloads_dir, @expected_filename)).any?).to be true
-  $logger.info("Файл #{@expected_filename} найден в #{downloads_dir}")
+  timeout = 20 
+  start_time = Time.now
+  until Dir.glob(File.join(downloads_dir, site_name)).any? || (Time.now - start_time) > timeout
+    sleep 1
+  end
+  raise "Файл #{site_name} не скачался за #{timeout} секунд" unless Dir.glob(File.join(downloads_dir, site_name)).any?
 end
 
-Then(/^имя скачанного файла совпадает с именем файла-установщика, указанным на сайте$/) do
+
+Then(/^имя скачанного файла совпадает с указанным на сайте$/) do
+  last_stables = all(:xpath, "//a[contains(@href, '.tar.gz') and contains(text(), 'Ruby 3')]")
+  site_name = last_stables[0][:href].split('/').last
   downloads_dir = File.join(Dir.pwd, 'features/tmp')
-  downloaded_file = Dir.glob(File.join(downloads_dir, @expected_filename)).first
-  expect(File.basename(downloaded_file)).to eq @expected_filename
-  $logger.info("Имя скачанного файла #{File.basename(downloaded_file)} совпадает с ожидаемым #{@expected_filename}")
+  downloaded_file = Dir.glob(File.join(downloads_dir, site_name)).first
+  $logger.info("имя скачанного файла: #{File.basename(downloaded_file)}, ожидаемое имя: #{site_name}")
+  expect(File.basename(downloaded_file)).to eq site_name
+  $logger.info("Имя скачанного файла #{File.basename(downloaded_file)} совпадает с ожидаемым #{site_name}")
+  
+  File.delete(downloaded_file) if downloaded_file && File.exist?(downloaded_file)
+  $logger.info("Файл #{site_name} удалён из #{downloads_dir}")
+rescue => e
+  $logger.error("Ошибка при удалении файла: #{e.message}")
+  raise
 end
