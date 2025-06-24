@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-When(/^захожу на страницу "(.+?)"$/) do |url|
+Given(/^захожу на страницу "(.+?)"$/) do |url|
   visit url
   $logger.info("Страница #{url} открыта")
   sleep 1
@@ -21,7 +21,7 @@ When(/^кликаю по строке выдачи с адресом (.+?)$/) do
   sleep 1
 end
 
-When(/^я должен увидеть текст на странице "([^"]*)"$/) do |text_page|
+And(/^я должен увидеть текст на странице "([^"]*)"$/) do |text_page|
   sleep 1
   expect(page).to have_text text_page
   $logger.info("Текст #{text_page} на текущей странице присутствует")
@@ -60,7 +60,7 @@ Then(/^файл находится в директории загрузок$/) d
   end
 end
 
-Then(/^имя скачанного файла совпадает с указанным на сайте$/) do
+And(/^имя скачанного файла совпадает с указанным на сайте$/) do
   last_stables = all(:xpath, "//a[contains(@href, '.tar.gz') and contains(text(), 'Ruby 3')]")
   site_name = last_stables[0][:href].split('/').last
   downloads_dir = File.join(Dir.pwd, 'features/tmp')

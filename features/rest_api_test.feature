@@ -5,9 +5,9 @@ Feature: REST API Testing
 
   @get @smoke
   Scenario: Get users from userlist
-    When получаю информацию о пользователях
+    Given получаю информацию о пользователях
     Then проверяю наличие логина i.ivanov в списке пользователей
-    When проверяю соответствие данных пользователя эталону:
+    Then проверяю соответствие данных пользователя эталону:
       | login     | i.ivanov       |
       | name      | Ivan           |
       | surname   | Ivanov         |
@@ -16,9 +16,9 @@ Feature: REST API Testing
 
   @get @smoke
   Scenario: Get user from userlist
-    When получаю информацию о пользователях
+    Given получаю информацию о пользователях
     When позитивно получаю информацию о пользователe с айди 630:
-    When проверяю соответствие данных пользователя эталону:
+    Then проверяю соответствие данных пользователя эталону:
       | login     | c.tester       |
       | name      | Ivan           |
       | surname   | Petrov         |
@@ -26,7 +26,7 @@ Feature: REST API Testing
 
   @get @negative
   Scenario: Negative get user from userlist
-    When получаю информацию о пользователях
+    Given получаю информацию о пользователях
     When негативно получаю информацию о пользователe с айди 630:
 
   @post @smoke
@@ -36,14 +36,14 @@ Feature: REST API Testing
       | name      | Alister        |
       | surname   | Lavey          |
       | password  | Pass123!       |
-    When получаю информацию о пользователях
+    Given получаю информацию о пользователях
     Then проверяю наличие логина unique.user в списке пользователей
-    When проверяю соответствие данных пользователя эталону:
+    Then проверяю соответствие данных пользователя эталону:
       | login     | unique.user    |
       | name      | Alister        |
       | surname   | Lavey          |
       | active    | 1              |
-    When позитивно удаляю пользователя с логином unique.user
+    And позитивно удаляю пользователя с логином unique.user
 
   @post @negative
   Scenario: Negative adding same user to userlist
@@ -60,16 +60,16 @@ Feature: REST API Testing
       | name      | Alister        |
       | surname   | Lavey          |
       | password  | Pass123!       |
-    When получаю информацию о пользователях
+    Given получаю информацию о пользователях
     Then проверяю наличие логина unique.user в списке пользователей
-    When позитивно удаляю пользователя с логином unique.user
-    When получаю информацию о пользователях
+    And позитивно удаляю пользователя с логином unique.user
+    Given получаю информацию о пользователях
     Then проверяю отсутствие логина unique.user в списке пользователей
 
   @detete @negative
   Scenario: Negative elete user from user list
     When негативно удаляю пользователя с логином unique.user
-    When получаю информацию о пользователях
+    Given получаю информацию о пользователях
     Then проверяю отсутствие логина unique.user в списке пользователей
 
   @put @smoke
@@ -79,7 +79,7 @@ Feature: REST API Testing
       | name      | Alister        |
       | surname   | Lavey          |
       | password  | Pass123!       |
-    When получаю информацию о пользователях
+    Given получаю информацию о пользователях
     Then проверяю наличие логина unique.user в списке пользователей
     When позитивно меняю параметры пользователя с логином unique.user:
       | login     | unique.user1   |
@@ -87,14 +87,14 @@ Feature: REST API Testing
       | surname   | Lavey3         |
       | password  | Pass1234       |
       | active    | 2              |
-    When получаю информацию о пользователях
+    Given получаю информацию о пользователях
     Then проверяю отсутствие логина unique.user в списке пользователей
-    When проверяю соответствие данных пользователя эталону:
+    Then проверяю соответствие данных пользователя эталону:
       | login     | unique.user1   |
       | name      | Alister2       |
       | surname   | Lavey3         |
       | active    | 2              |
-    When позитивно удаляю пользователя с логином unique.user1
+    And позитивно удаляю пользователя с логином unique.user1
 
   @put @negative
   Scenario: Negative change user in userlist
@@ -103,7 +103,7 @@ Feature: REST API Testing
       | name      | Alister        |
       | surname   | Lavey          |
       | password  | Pass123!       |
-    When получаю информацию о пользователях
+    Given получаю информацию о пользователях
     Then проверяю наличие логина unique.user в списке пользователей
     When негативно меняю параметры пользователя с логином unique.user:
       | login     | unique.user1   |
@@ -111,7 +111,7 @@ Feature: REST API Testing
       | surname   | Lavey3         |
       | password  | Pass1234       |
       | active    | 2              |
-    When позитивно удаляю пользователя с логином unique.user
+    And позитивно удаляю пользователя с логином unique.user
 
   @put @negative
   Scenario: Negative non arguments change user in userlist
@@ -120,7 +120,7 @@ Feature: REST API Testing
       | name      | Alister        |
       | surname   | Lavey          |
       | password  | Pass123!       |
-    When получаю информацию о пользователях
+    Given получаю информацию о пользователях
     Then проверяю наличие логина unique.user в списке пользователей
     When без_аргументов меняю параметры пользователя с логином unique.user:
       | login     ||
@@ -128,4 +128,4 @@ Feature: REST API Testing
       | surname   ||
       | password  ||
       | active    ||
-    When позитивно удаляю пользователя с логином unique.user
+    And позитивно удаляю пользователя с логином unique.user
